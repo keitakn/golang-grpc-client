@@ -20,3 +20,9 @@ https://github.com/keitakn/golang-grpc-server と同じDockerネットワーク�
 ```
 ./docker-compose-up-debug.sh
 ```
+
+## ソースコードのフォーマット
+
+プロジェクトルートで以下を実行して下さい。
+
+`gofmt -l -s -w .`

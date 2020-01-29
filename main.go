@@ -10,33 +10,31 @@ import (
 	"time"
 )
 
-type String string
+func handler(w http.ResponseWriter, r *http.Request) {
+	catId := r.URL.Query().Get("catId")
 
-func (s String) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, s)
-}
-
-// TODO 後で構造化する
-func main() {
 	// TODO gRPCサーバーの情報は環境変数等にする
-	// TODO gRPCサーバーの生成処理は分離する
-	connection, err := grpc.Dial("grpc-server:9998", grpc.WithInsecure())
+	conn, err := grpc.Dial("grpc-server:9998", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalln("did not connect: %s", err)
 	}
-	defer connection.Close()
+	defer conn.Close()
 
-	client := pb.NewCatClient(connection)
+	client := pb.NewCatClient(conn)
 
-	context, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	response, err := client.FindCuteCat(context, &pb.FindCuteCatMessage{CatId: "mop"})
+	res, err := client.FindCuteCat(ctx, &pb.FindCuteCatMessage{CatId: catId})
 	if err != nil {
 		log.Println(err)
 	}
 
-	msg := response.GetName() + " is " + response.GetKind() + " 🐱"
-	http.Handle("/", String(msg))
+	msg := res.GetName() + " is " + res.GetKind() + " 🐱"
+	fmt.Fprint(w, msg)
+}
+
+func main() {
+	http.HandleFunc("/", handler)
 	http.ListenAndServe(":9999", nil)
 }

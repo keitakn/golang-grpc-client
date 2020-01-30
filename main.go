@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/keitakn/golang-grpc-client/infrastructure"
 	pb "github.com/keitakn/golang-grpc-server/pb"
 	"google.golang.org/grpc"
 	"log"
@@ -11,10 +12,10 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	catId := r.URL.Query().Get("catId")
+	serverEnv := infrastructure.GetRPCServerEnv()
+	serverHost := serverEnv.Host + ":" + serverEnv.Port
 
-	// TODO gRPCサーバーの情報は環境変数等にする
-	conn, err := grpc.Dial("grpc-server:9998", grpc.WithInsecure())
+	conn, err := grpc.Dial(serverHost, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalln("did not connect: %s", err)
 	}
@@ -25,6 +26,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	catId := r.URL.Query().Get("catId")
 	res, err := client.FindCuteCat(ctx, &pb.FindCuteCatMessage{CatId: catId})
 	if err != nil {
 		log.Println(err)

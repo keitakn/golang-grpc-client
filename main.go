@@ -37,16 +37,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		Message string `json:"message"`
 	}
 	payload := payloadType{Message: msg}
-	json, err := json.MarshalIndent(payload, "", "  ")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(json))
+	createJsonResponse(w, http.StatusOK, payload)
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,16 +45,18 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 		Message string `json:"message"`
 	}
 	payload := payloadType{Message: "golang-grpc-client healthCheck is OK🐱"}
+	createJsonResponse(w, http.StatusOK, payload)
+}
 
+func createJsonResponse(w http.ResponseWriter, status int, payload interface{}) {
 	res, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	w.Write([]byte(res))
 }
 

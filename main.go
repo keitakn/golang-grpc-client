@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/keitakn/golang-grpc-client/infrastructure"
 	pb "github.com/keitakn/golang-grpc-server/pb"
 	"google.golang.org/grpc"
@@ -34,7 +33,20 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msg := res.GetName() + " is " + res.GetKind() + " 🐱"
-	fmt.Fprint(w, msg)
+	type payloadType struct {
+		Message string `json:"message"`
+	}
+	payload := payloadType{Message: msg}
+	json, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(json))
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {

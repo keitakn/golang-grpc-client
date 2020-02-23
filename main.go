@@ -6,6 +6,7 @@ import (
 	"github.com/keitakn/golang-grpc-client/infrastructure"
 	"github.com/keitakn/golang-grpc-server/pkg/pb/cat"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"log"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	serverEnv := infrastructure.GetRPCServerEnv()
 	serverHost := serverEnv.Host + ":" + serverEnv.Port
+	authorizationMetadata := "Bearer " + serverEnv.AuthToken
 
 	conn, err := grpc.Dial(serverHost, grpc.WithInsecure())
 	if err != nil {
@@ -27,6 +29,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	catId := r.URL.Query().Get("catId")
+	md := metadata.Pairs("authorization", authorizationMetadata)
+	ctx = metadata.NewOutgoingContext(ctx, md)
 	res, err := client.FindCuteCat(ctx, &cat.FindCuteCatMessage{CatId: catId})
 	if err != nil {
 		log.Println(err)

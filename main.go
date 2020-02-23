@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/keitakn/golang-grpc-client/infrastructure"
-	pb "github.com/keitakn/golang-grpc-server/pb"
+	"github.com/keitakn/golang-grpc-server/pkg/pb/cat"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
@@ -21,13 +21,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	client := pb.NewCatClient(conn)
+	client := cat.NewCatClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	catId := r.URL.Query().Get("catId")
-	res, err := client.FindCuteCat(ctx, &pb.FindCuteCatMessage{CatId: catId})
+	res, err := client.FindCuteCat(ctx, &cat.FindCuteCatMessage{CatId: catId})
 	if err != nil {
 		log.Println(err)
 	}
